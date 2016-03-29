@@ -30,7 +30,8 @@ public class BetaHantoGame implements HantoGame
 {
 	private HantoPlayerColor startingPlayer, currentPlayer;
 	private int turnNumber = 1;
-	private boolean blueButterflyPlaced = false, redButterflyPlaced = false, gameOver = false;
+	private HantoCoordinateImpl blueButterflyLoc = null, redButterflyLoc = null;
+	private boolean gameOver = false;
 	private Map<HantoCoordinateImpl, HantoPiece> board = new HashMap<HantoCoordinateImpl, HantoPiece>();
 	
 	/**
@@ -68,14 +69,14 @@ public class BetaHantoGame implements HantoGame
 		
 		if (currentPlayer == BLUE) {
 			if (pieceType == BUTTERFLY) {
-				blueButterflyPlaced = true;
+				blueButterflyLoc = place;
 			}
 			
 			newPiece = new HantoPieceImpl(BLUE, pieceType);
 			currentPlayer = RED;
 		} else {
 			if (pieceType == BUTTERFLY) {
-				redButterflyPlaced = true;
+				redButterflyLoc = place;
 			}
 			
 			newPiece = new HantoPieceImpl(RED, pieceType);
@@ -89,12 +90,48 @@ public class BetaHantoGame implements HantoGame
 		
 		board.put(place, newPiece);
 		
+		// Check end-game conditions
 		if (turnNumber > 6) {
 			gameOver = true;
 			return DRAW;
-		} else {
-			return OK;
 		}
+		
+		boolean blueSurr = isSurrounded(blueButterflyLoc);
+		
+		if (isSurrounded(redButterflyLoc)) {
+			gameOver = true;
+			
+			if (blueSurr) {
+				return DRAW;
+			} else {
+				return BLUE_WINS;
+			}
+		} else if (blueSurr) {
+			gameOver = true;
+			return RED_WINS;
+		}
+
+		return OK;
+	}
+
+	/**
+	 * Method to determine if a piece is surrounded
+	 * @return true if the piece is surrounded
+	 */
+	private boolean isSurrounded(HantoCoordinateImpl loc) {
+		if (loc == null) {
+			return false;
+		}
+		
+		int numberOfAdjacencies = 0;
+		
+		for (HantoCoordinateImpl hex : board.keySet()) {
+			if (loc.isAdjacentTo(hex)) {
+				numberOfAdjacencies++;
+			}
+		}
+		
+		return numberOfAdjacencies == 6;
 	}
 
 	/**
@@ -107,24 +144,24 @@ public class BetaHantoGame implements HantoGame
 		}
 		
 		if (currentPlayer == BLUE) {
-			if (pieceType == BUTTERFLY && blueButterflyPlaced) {
+			if (pieceType == BUTTERFLY && blueButterflyLoc != null) {
 				// Must be first one
 				throw new HantoException("Blue player has already played his butterfly.");
 			}
 			
-			if (turnNumber >= 4 && pieceType != BUTTERFLY && !blueButterflyPlaced) {
+			if (turnNumber >= 4 && pieceType != BUTTERFLY && blueButterflyLoc == null) {
 				// Butterfly must be placed by turn 4
 				throw new HantoException("Blue player must play his butterfly.");
 			}
 		}
-			
+
 		if (currentPlayer == RED) {
-			if (pieceType == BUTTERFLY && redButterflyPlaced) {
+			if (pieceType == BUTTERFLY && redButterflyLoc != null) {
 				// Must be first one
 				throw new HantoException("Red player has already played his butterfly.");
 			}
 			
-			if (turnNumber >= 4 && pieceType != BUTTERFLY && !redButterflyPlaced) {
+			if (turnNumber >= 4 && pieceType != BUTTERFLY && redButterflyLoc == null) {
 				// Butterfly must be placed by turn 4
 				throw new HantoException("Red player must play his butterfly.");
 			}
@@ -142,7 +179,6 @@ public class BetaHantoGame implements HantoGame
 			}
 		} else {
 			if (board.containsKey(place)) {
-				// Can't place on existing piece
 				throw new HantoException("New piece cannot be placed on existing piece.");
 			}
 			
