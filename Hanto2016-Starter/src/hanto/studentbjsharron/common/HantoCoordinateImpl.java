@@ -66,14 +66,17 @@ public class HantoCoordinateImpl implements HantoCoordinate
 		int y2 = other.getY();
 		
 		if (x1 + 1 == x2) {
-			if (y1 == y2 || y1 - 1 == y2)
+			if (y1 == y2 || y1 - 1 == y2) {
 				return true;
+			}
 		} else if (x1 == x2) {
-			if (y1 + 1 == y2 || y1 - 1 == y2)
+			if (y1 + 1 == y2 || y1 - 1 == y2) {
 				return true;
+			}
 		} else if (x1 - 1 == x2) {
-			if (y1 == y2 || y1 + 1 == y2)
+			if (y1 == y2 || y1 + 1 == y2) {
 				return true;
+			}
 		}
 		
 		return false;

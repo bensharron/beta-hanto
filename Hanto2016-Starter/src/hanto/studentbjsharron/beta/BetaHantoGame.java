@@ -16,6 +16,9 @@ import hanto.common.*;
 import hanto.studentbjsharron.common.*;
 
 import static hanto.common.MoveResult.*;
+
+import java.util.*;
+
 import static hanto.common.HantoPieceType.*;
 import static hanto.common.HantoPlayerColor.*;
 
@@ -26,8 +29,9 @@ import static hanto.common.HantoPlayerColor.*;
 public class BetaHantoGame implements HantoGame
 {
 	private HantoPlayerColor startingPlayer, currentPlayer;
-	private HantoPiece bluePiece, redPiece;
-	private HantoCoordinateImpl blueLocation, redLocation;
+	private int turnNumber = 1;
+	private boolean blueButterflyPlaced = false, redButterflyPlaced = false, gameOver = false;
+	private Map<HantoCoordinateImpl, HantoPiece> board = new HashMap<HantoCoordinateImpl, HantoPiece>();
 	
 	/**
 	 * Standard constructor for BetaHantoGame with given starting player
@@ -45,33 +49,111 @@ public class BetaHantoGame implements HantoGame
 	public MoveResult makeMove(HantoPieceType pieceType, HantoCoordinate from,
 			HantoCoordinate to) throws HantoException
 	{
+		if (gameOver) {
+			throw new HantoException("You cannot move after the game is finished.");
+		}
+		
+		if (from != null) {
+			throw new HantoException("Piece must be placed and not moved.");
+		}
+		
+		checkValidPiece(pieceType);
+		
 		// copy constructor
 		HantoCoordinateImpl place = new HantoCoordinateImpl(to);
 		
-		if (currentPlayer == startingPlayer) {
-			if (to.getX() != 0 || to.getY() != 0)
-				throw new HantoException("First player did not make first move to origin.");
-		} else {
-			if (currentPlayer == BLUE && !place.isAdjacentTo(redLocation))
-				throw new HantoException("New piece not adjacent to existing piece.");
-			
-			if (currentPlayer == RED && !place.isAdjacentTo(blueLocation)) {
-				throw new HantoException("New piece not adjacent to existing piece.");
-			}
-		}
+		checkValidLocation(place);
 		
-		// Swap player
+		HantoPieceImpl newPiece;
+		
 		if (currentPlayer == BLUE) {
-			bluePiece = new HantoPieceImpl(BLUE, pieceType);
-			blueLocation = place;
+			if (pieceType == BUTTERFLY) {
+				blueButterflyPlaced = true;
+			}
+			
+			newPiece = new HantoPieceImpl(BLUE, pieceType);
 			currentPlayer = RED;
 		} else {
-			redPiece = new HantoPieceImpl(RED, pieceType);
-			redLocation = place;
+			if (pieceType == BUTTERFLY) {
+				redButterflyPlaced = true;
+			}
+			
+			newPiece = new HantoPieceImpl(RED, pieceType);
 			currentPlayer = BLUE;
 		}
 		
-		return OK;
+		if (currentPlayer == startingPlayer) {
+			// Next turn
+			turnNumber++;
+		}
+		
+		board.put(place, newPiece);
+		
+		if (turnNumber > 6) {
+			gameOver = true;
+			return DRAW;
+		} else {
+			return OK;
+		}
+	}
+
+	/**
+	 * @param pieceType piece to check if it's valid on the current board for BetaHanto
+	 * @throws HantoException if piece is invalid
+	 */
+	private void checkValidPiece(HantoPieceType pieceType) throws HantoException {
+		if (pieceType != BUTTERFLY && pieceType != SPARROW) {
+			throw new HantoException("Piece must be a butterfly or a sparrow.");
+		}
+		
+		if (currentPlayer == BLUE) {
+			if (pieceType == BUTTERFLY && blueButterflyPlaced) {
+				// Must be first one
+				throw new HantoException("Blue player has already played his butterfly.");
+			}
+			
+			if (turnNumber >= 4 && pieceType != BUTTERFLY && !blueButterflyPlaced) {
+				// Butterfly must be placed by turn 4
+				throw new HantoException("Blue player must play his butterfly.");
+			}
+		}
+			
+		if (currentPlayer == RED) {
+			if (pieceType == BUTTERFLY && redButterflyPlaced) {
+				// Must be first one
+				throw new HantoException("Red player has already played his butterfly.");
+			}
+			
+			if (turnNumber >= 4 && pieceType != BUTTERFLY && !redButterflyPlaced) {
+				// Butterfly must be placed by turn 4
+				throw new HantoException("Red player must play his butterfly.");
+			}
+		}
+	}
+
+	/**
+	 * Helper function to check if new coordinate is valid under rules of BetaHanto
+	 * @param place HantoCoordinate to check to guarantee the coordinate is valid
+	 */
+	private void checkValidLocation(HantoCoordinateImpl place) throws HantoException {
+		if (currentPlayer == startingPlayer && turnNumber == 1) {
+			if (place.getX() != 0 || place.getY() != 0) {
+				throw new HantoException("First player did not make first move to origin.");
+			}
+		} else {
+			if (board.containsKey(place)) {
+				// Can't place on existing piece
+				throw new HantoException("New piece cannot be placed on existing piece.");
+			}
+			
+			for (HantoCoordinateImpl pos : board.keySet()) {
+				if (place.isAdjacentTo(pos)) {
+					return;
+				}
+			}
+			
+			throw new HantoException("New piece not adjacent to existing piece.");
+		}
 	}
 
 	/*
@@ -82,13 +164,7 @@ public class BetaHantoGame implements HantoGame
 	{
 		HantoCoordinateImpl loc = new HantoCoordinateImpl(where);
 		
-		if (loc.equals(blueLocation)) {
-			return bluePiece;
-		} else if (loc.equals(redLocation)) {
-			return redPiece;
-		} else {
-			return null;
-		}
+		return board.get(loc);
 	}
 
 	/*
@@ -97,8 +173,60 @@ public class BetaHantoGame implements HantoGame
 	@Override
 	public String getPrintableBoard()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		String boardStr = "";
+		
+		// "Row" can be calculated using formula x+2y
+		int lowestRow = Integer.MAX_VALUE;
+		int highestRow = Integer.MIN_VALUE;
+		
+		int lowestCol = Integer.MAX_VALUE;
+		int highestCol = Integer.MIN_VALUE;
+		
+		// Find boundary of board
+		for (HantoCoordinateImpl pos : board.keySet()) {
+			int rowVal = pos.getX() + 2 * pos.getY();
+			
+			if (rowVal < lowestRow) {
+				lowestRow = rowVal;
+			}
+			
+			if (rowVal > highestRow) {
+				highestRow = rowVal;
+			}
+			
+			if (pos.getX() < lowestCol) {
+				lowestCol = pos.getX();
+			}
+			
+			if (pos.getX() > highestCol) {
+				highestCol = pos.getX();
+			}
+		}
+		
+		// Iterate over board
+		for (int row = highestRow; row >= lowestRow; row--) {
+			for (int col = lowestCol; col <= highestCol; col++) {
+				if ((row - col) % 2 != 0) {
+					// Coordinate doesn't exist
+					boardStr += " ";
+				} else {				
+					int x = col;
+					int y = (row - col) / 2;
+					
+					HantoCoordinateImpl hex = new HantoCoordinateImpl(x, y);
+					
+					if (board.containsKey(hex)) {
+						boardStr += board.get(hex).getType().getSymbol();
+					} else {
+						boardStr += " ";
+					}
+				}
+			}
+			
+			boardStr += "\n";
+		}
+		
+		return boardStr;
 	}
 
 }
