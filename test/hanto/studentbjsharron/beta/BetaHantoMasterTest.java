@@ -335,7 +335,7 @@ public class BetaHantoMasterTest
 		assertEquals(firstPlayerWins, mr);
 	}
 	
-	@Test  // 21
+	@Test  // 22
 	public void redWinsAfterBlueButterflyIsSurrrounded() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -351,7 +351,30 @@ public class BetaHantoMasterTest
 		assertEquals(secondPlayerWins, mr);
 	}
 	
-	@Test  // 21
+	@Test  // 23
+	public void redWinsAfterBlueButterflyIsSurrroundedOnLastTurn() throws HantoException
+	{
+		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
+		game.makeMove(BUTTERFLY, null, makeCoordinate(1, 0));
+		
+		game.makeMove(SPARROW, null, makeCoordinate(0, 1));
+		game.makeMove(SPARROW, null, makeCoordinate(-1, 1));
+		
+		game.makeMove(SPARROW, null, makeCoordinate(-1, 0));
+		game.makeMove(SPARROW, null, makeCoordinate(1, -1));
+		
+		game.makeMove(SPARROW, null, makeCoordinate(2, -2));
+		game.makeMove(SPARROW, null, makeCoordinate(3, -2));
+		
+		game.makeMove(SPARROW, null, makeCoordinate(2, -1));
+		game.makeMove(SPARROW, null, makeCoordinate(1, -2));
+		
+		game.makeMove(SPARROW, null, makeCoordinate(2, 0));
+		final MoveResult mr = game.makeMove(SPARROW, null, makeCoordinate(0, -1));
+		assertEquals(secondPlayerWins, mr);
+	}
+	
+	@Test  // 24
 	public void DrawAfterBothButterfliesAreSurrrounded() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));

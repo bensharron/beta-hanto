@@ -13,6 +13,7 @@ package hanto.studentbjsharron;
 import hanto.common.*;
 import hanto.studentbjsharron.alpha.AlphaHantoGame;
 import hanto.studentbjsharron.beta.BetaHantoGame;
+import hanto.studentbjsharron.gamma.GammaHantoGame;
 
 /**
  * This is a singleton class that provides a factory to create an instance of any version
@@ -66,6 +67,9 @@ public class HantoGameFactory
 				break;
 			case BETA_HANTO:
 				game = new BetaHantoGame(movesFirst);
+				break;
+			case GAMMA_HANTO:
+				game = new GammaHantoGame(movesFirst);
 				break;
 		}
 		return game;

@@ -28,12 +28,14 @@ import static hanto.common.HantoPlayerColor.*;
  */
 public class BetaHantoGame implements HantoGame
 {
-	private HantoPlayerColor startingPlayer, currentPlayer;
-	private int turnNumber = 1;
-	private HantoCoordinateImpl blueButterflyLoc = null, redButterflyLoc = null;
-	private boolean gameOver = false;
-	private Map<HantoCoordinateImpl, HantoPiece> board = new HashMap<HantoCoordinateImpl, HantoPiece>();
-	
+	private final HantoPlayerColor startingPlayer;
+	private HantoPlayerColor currentPlayer;
+	private int turnNumber;
+	private HantoCoordinateImpl blueButterflyLoc, redButterflyLoc;
+	private boolean gameOver;
+	private Map<HantoCoordinateImpl, HantoPiece> board;
+	private final int numTurns;
+
 	/**
 	 * Standard constructor for BetaHantoGame with given starting player
 	 * @param movesFirst player that will make the first move
@@ -41,6 +43,11 @@ public class BetaHantoGame implements HantoGame
 	public BetaHantoGame(HantoPlayerColor movesFirst) {
 		startingPlayer = movesFirst;
 		currentPlayer = movesFirst;
+		turnNumber = 1;
+		blueButterflyLoc = redButterflyLoc = null;
+		gameOver = false;
+		board = new HashMap<HantoCoordinateImpl, HantoPiece>();
+		numTurns = 6;
 	}
 	
 	/*
@@ -65,39 +72,24 @@ public class BetaHantoGame implements HantoGame
 		
 		checkValidLocation(place);
 		
-		HantoPieceImpl newPiece;
-		
-		if (currentPlayer == BLUE) {
-			if (pieceType == BUTTERFLY) {
-				blueButterflyLoc = place;
-			}
-			
-			newPiece = new HantoPieceImpl(BLUE, pieceType);
-			currentPlayer = RED;
-		} else {
-			if (pieceType == BUTTERFLY) {
-				redButterflyLoc = place;
-			}
-			
-			newPiece = new HantoPieceImpl(RED, pieceType);
-			currentPlayer = BLUE;
-		}
+		placePiece(pieceType, place);
 		
 		if (currentPlayer == startingPlayer) {
 			// Next turn
 			turnNumber++;
 		}
 		
-		board.put(place, newPiece);
-		
-		// Check end-game conditions
-		if (turnNumber > 6) {
-			gameOver = true;
-			return DRAW;
-		}
-		
+		return checkEndgameConditions();
+	}
+
+	/**
+	 * Method to evaluate the end game conditions and determine the correct result
+	 * @return the correct result of the current move
+	 */
+	private MoveResult checkEndgameConditions() {
 		boolean blueSurr = isSurrounded(blueButterflyLoc);
 		
+		// Check end-game conditions
 		if (isSurrounded(redButterflyLoc)) {
 			gameOver = true;
 			
@@ -110,8 +102,36 @@ public class BetaHantoGame implements HantoGame
 			gameOver = true;
 			return RED_WINS;
 		}
+		
+		if (turnNumber > numTurns) {
+			gameOver = true;
+			return DRAW;
+		}
 
 		return OK;
+	}
+
+	/**
+	 * Method to place piece on the board and update relevant state variables
+	 * @param pieceType piece that is being placed
+	 * @param place location that the piece is being placed at
+	 */
+	private void placePiece(HantoPieceType pieceType, HantoCoordinateImpl place) {
+		board.put(place, new HantoPieceImpl(currentPlayer, pieceType));
+		
+		if (currentPlayer == BLUE) {
+			if (pieceType == BUTTERFLY) {
+				blueButterflyLoc = place;
+			}
+			
+			currentPlayer = RED;
+		} else {
+			if (pieceType == BUTTERFLY) {
+				redButterflyLoc = place;
+			}
+
+			currentPlayer = BLUE;
+		}
 	}
 
 	/**
@@ -264,5 +284,4 @@ public class BetaHantoGame implements HantoGame
 		
 		return boardStr;
 	}
-
 }
