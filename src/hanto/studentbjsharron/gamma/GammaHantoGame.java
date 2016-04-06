@@ -63,18 +63,25 @@ public class GammaHantoGame implements HantoGame {
 			throw new HantoException("You cannot move after the game is finished.");
 		}
 		
+		// copy constructors
+		HantoCoordinateImpl toImpl = new HantoCoordinateImpl(to);
+		HantoCoordinateImpl fromImpl = null;
+		
 		if (from != null) {
-			throw new HantoException("Piece must be placed and not moved.");
+			fromImpl = new HantoCoordinateImpl(from);
 		}
 		
 		checkValidPiece(pieceType);
+		checkValidLocation(fromImpl, toImpl);
 		
-		// copy constructor
-		HantoCoordinateImpl place = new HantoCoordinateImpl(to);
+		if (from == null) {
+			checkValidNewPiece(pieceType);
+			checkValidNewLocation(toImpl);
+		} else {
+			removePiece(pieceType, fromImpl);
+		}
 		
-		checkValidLocation(place);
-		
-		placePiece(pieceType, place);
+		placePiece(pieceType, toImpl);
 		
 		if (currentPlayer == startingPlayer) {
 			// Next turn
@@ -84,6 +91,129 @@ public class GammaHantoGame implements HantoGame {
 		return checkEndgameConditions();
 	}
 
+	/**
+	 * Checks if the piece being referenced is a part of this game
+	 * @param pieceType piece to check if it's valid in this game iteration
+	 * @throws HantoException if piece is invalid
+	 */
+	private void checkValidPiece(HantoPieceType pieceType) throws HantoException {
+		if (pieceType != BUTTERFLY && pieceType != SPARROW) {
+			throw new HantoException("Piece must be a butterfly or a sparrow.");
+		}
+	}
+
+	/**
+	 * Checks that new piece doesn't break any rules about its type
+	 * @param pieceType piece to check if it's a valid new piece
+	 * @throws HantoException if piece is invalid
+	 */
+	private void checkValidNewPiece(HantoPieceType pieceType) throws HantoException {
+		if (currentPlayer == BLUE) {
+			if (pieceType == BUTTERFLY && blueButterflyLoc != null) {
+				// Must be first one
+				throw new HantoException("Blue player has already played his butterfly.");
+			}
+			
+			if (turnNumber >= 4 && pieceType != BUTTERFLY && blueButterflyLoc == null) {
+				// Butterfly must be placed by turn 4
+				throw new HantoException("Blue player must play his butterfly.");
+			}
+		} else {
+			if (pieceType == BUTTERFLY && redButterflyLoc != null) {
+				// Must be first one
+				throw new HantoException("Red player has already played his butterfly.");
+			}
+			
+			if (turnNumber >= 4 && pieceType != BUTTERFLY && redButterflyLoc == null) {
+				// Butterfly must be placed by turn 4
+				throw new HantoException("Red player must play his butterfly.");
+			}
+		}
+	}
+	
+	/**
+	 * Helper function to check if new coordinate is valid under rules of BetaHanto
+	 * @param place HantoCoordinate to check to guarantee the coordinate is valid
+	 */
+	private void checkValidLocation(HantoCoordinateImpl from, HantoCoordinateImpl to) throws HantoException {
+		if (currentPlayer == startingPlayer && turnNumber == 1 &&
+				(to.getX() != 0 || to.getY() != 0)) {
+			throw new HantoException("First player did not make first move to origin.");
+		}
+		
+		if (board.containsKey(to)) {
+			throw new HantoException("Piece cannot be placed on existing piece.");
+		}
+	}
+
+	/**
+	 * Method to check the location for a new placed piece for validity
+	 * @param to New Coordinate to check for validity
+	 * @throws HantoException if new coordinate is invalid
+	 */
+	private void checkValidNewLocation(HantoCoordinateImpl to) throws HantoException {
+		if (turnNumber > 1)	{
+			boolean adjacentToSameColor = false;
+			
+			for (HantoCoordinateImpl adj : to.getAdjacentCoordinates()) {
+				if (board.get(adj) == null) {
+					continue;
+				}
+				
+				if (currentPlayer != board.get(adj).getColor()) {
+					throw new HantoException("New piece adjacent to existing piece of other color.");
+				}
+					
+				adjacentToSameColor = true;
+				break;
+			}
+			
+			if (!adjacentToSameColor) {
+				throw new HantoException("New piece not adjacent to existing piece of the same color.");
+			}
+		}
+	}
+	
+	/**
+	 * Method to place piece on the board and update relevant state variables
+	 * @param pieceType piece that is being placed
+	 * @param place location that the piece is being placed at
+	 */
+	private void placePiece(HantoPieceType pieceType, HantoCoordinateImpl place) {
+		board.put(place, new HantoPieceImpl(currentPlayer, pieceType));
+		
+		if (currentPlayer == BLUE) {
+			if (pieceType == BUTTERFLY) {
+				blueButterflyLoc = place;
+			}
+			
+			currentPlayer = RED;
+		} else {
+			if (pieceType == BUTTERFLY) {
+				redButterflyLoc = place;
+			}
+
+			currentPlayer = BLUE;
+		}
+	}
+
+	/**
+	 * Remove piece from board, usually in preparation for replacing it after a move
+	 * @param pieceType Piece type being removed
+	 * @param loc Location the piece is being removed from
+	 * @throws HantoException if piece trying to be removed doesn't match piece at that location
+	 */
+	private void removePiece(HantoPieceType pieceType, HantoCoordinateImpl loc) throws HantoException {
+		HantoPiece currPiece = board.get(loc);
+		
+		if (currPiece.getColor() == currentPlayer && currPiece.getType() == pieceType) {
+			// Piece matches qualifications
+			board.remove(loc);
+		} else {
+			throw new HantoException("Piece being moved doesn't match piece at location given.");
+		}
+	}
+	
 	/**
 	 * Method to evaluate the end game conditions and determine the correct result
 	 * @return the correct result of the current move
@@ -114,29 +244,6 @@ public class GammaHantoGame implements HantoGame {
 	}
 
 	/**
-	 * Method to place piece on the board and update relevant state variables
-	 * @param pieceType piece that is being placed
-	 * @param place location that the piece is being placed at
-	 */
-	private void placePiece(HantoPieceType pieceType, HantoCoordinateImpl place) {
-		board.put(place, new HantoPieceImpl(currentPlayer, pieceType));
-		
-		if (currentPlayer == BLUE) {
-			if (pieceType == BUTTERFLY) {
-				blueButterflyLoc = place;
-			}
-			
-			currentPlayer = RED;
-		} else {
-			if (pieceType == BUTTERFLY) {
-				redButterflyLoc = place;
-			}
-
-			currentPlayer = BLUE;
-		}
-	}
-
-	/**
 	 * Method to determine if a piece is surrounded
 	 * @return true if the piece is surrounded
 	 */
@@ -145,75 +252,15 @@ public class GammaHantoGame implements HantoGame {
 			return false;
 		}
 		
-		int numberOfAdjacencies = 0;
-		
-		for (HantoCoordinateImpl hex : board.keySet()) {
-			if (loc.isAdjacentTo(hex)) {
-				numberOfAdjacencies++;
+		for (HantoCoordinateImpl hex : loc.getAdjacentCoordinates()) {
+			if (board.get(hex) == null) {
+				return false;
 			}
 		}
 		
-		return numberOfAdjacencies == 6;
+		return true;
 	}
-
-	/**
-	 * @param pieceType piece to check if it's valid on the current board for BetaHanto
-	 * @throws HantoException if piece is invalid
-	 */
-	private void checkValidPiece(HantoPieceType pieceType) throws HantoException {
-		if (pieceType != BUTTERFLY && pieceType != SPARROW) {
-			throw new HantoException("Piece must be a butterfly or a sparrow.");
-		}
-		
-		if (currentPlayer == BLUE) {
-			if (pieceType == BUTTERFLY && blueButterflyLoc != null) {
-				// Must be first one
-				throw new HantoException("Blue player has already played his butterfly.");
-			}
-			
-			if (turnNumber >= 4 && pieceType != BUTTERFLY && blueButterflyLoc == null) {
-				// Butterfly must be placed by turn 4
-				throw new HantoException("Blue player must play his butterfly.");
-			}
-		}
-
-		if (currentPlayer == RED) {
-			if (pieceType == BUTTERFLY && redButterflyLoc != null) {
-				// Must be first one
-				throw new HantoException("Red player has already played his butterfly.");
-			}
-			
-			if (turnNumber >= 4 && pieceType != BUTTERFLY && redButterflyLoc == null) {
-				// Butterfly must be placed by turn 4
-				throw new HantoException("Red player must play his butterfly.");
-			}
-		}
-	}
-
-	/**
-	 * Helper function to check if new coordinate is valid under rules of BetaHanto
-	 * @param place HantoCoordinate to check to guarantee the coordinate is valid
-	 */
-	private void checkValidLocation(HantoCoordinateImpl place) throws HantoException {
-		if (currentPlayer == startingPlayer && turnNumber == 1) {
-			if (place.getX() != 0 || place.getY() != 0) {
-				throw new HantoException("First player did not make first move to origin.");
-			}
-		} else {
-			if (board.containsKey(place)) {
-				throw new HantoException("New piece cannot be placed on existing piece.");
-			}
-			
-			for (HantoCoordinateImpl pos : board.keySet()) {
-				if (place.isAdjacentTo(pos)) {
-					return;
-				}
-			}
-			
-			throw new HantoException("New piece not adjacent to existing piece.");
-		}
-	}
-
+	
 	/*
 	 * @see hanto.common.HantoGame#getPieceAt(hanto.common.HantoCoordinate)
 	 */

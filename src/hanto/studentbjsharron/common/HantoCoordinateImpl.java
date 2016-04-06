@@ -12,6 +12,9 @@
 
 package hanto.studentbjsharron.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import hanto.common.HantoCoordinate;
 
 /**
@@ -80,6 +83,26 @@ public class HantoCoordinateImpl implements HantoCoordinate
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Gets a List of the six adjacent coordinates
+	 * @return List of adjacent coordinates
+	 */
+	public List<HantoCoordinateImpl> getAdjacentCoordinates()  {
+		List<HantoCoordinateImpl> adjacencies = new ArrayList<HantoCoordinateImpl>();
+		
+		int x = this.getX();
+		int y = this.getY();
+		
+		adjacencies.add(new HantoCoordinateImpl(x + 1, y));
+		adjacencies.add(new HantoCoordinateImpl(x + 1, y - 1));
+		adjacencies.add(new HantoCoordinateImpl(x, y + 1));
+		adjacencies.add(new HantoCoordinateImpl(x, y - 1));
+		adjacencies.add(new HantoCoordinateImpl(x - 1, y));
+		adjacencies.add(new HantoCoordinateImpl(x - 1, y + 1));
+		
+		return adjacencies;
 	}
 	
 	/*
