@@ -13,6 +13,7 @@ import static hanto.common.MoveResult.OK;
 import static hanto.common.MoveResult.RED_WINS;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import hanto.common.HantoCoordinate;
@@ -34,6 +35,8 @@ public class GammaHantoGame implements HantoGame {
 	private HantoPlayerColor currentPlayer;
 	private int turnNumber;
 	private HantoCoordinateImpl blueButterflyLoc, redButterflyLoc;
+	private int blueSparrowsUsed, redSparrowsUsed;
+	private final int sparrowsAllowed;
 	private boolean gameOver;
 	private Map<HantoCoordinateImpl, HantoPiece> board;
 	private final int numTurns;
@@ -47,9 +50,11 @@ public class GammaHantoGame implements HantoGame {
 		currentPlayer = movesFirst;
 		turnNumber = 1;
 		blueButterflyLoc = redButterflyLoc = null;
+		blueSparrowsUsed = redSparrowsUsed = 0;
+		sparrowsAllowed = 5;
 		gameOver = false;
 		board = new HashMap<HantoCoordinateImpl, HantoPiece>();
-		numTurns = 6;
+		numTurns = 20;
 	}
 	
 	/*
@@ -65,23 +70,23 @@ public class GammaHantoGame implements HantoGame {
 		
 		// copy constructors
 		HantoCoordinateImpl toImpl = new HantoCoordinateImpl(to);
-		HantoCoordinateImpl fromImpl = null;
-		
-		if (from != null) {
-			fromImpl = new HantoCoordinateImpl(from);
-		}
 		
 		checkValidPiece(pieceType);
-		checkValidLocation(fromImpl, toImpl);
+		checkValidLocation(toImpl);
 		
 		if (from == null) {
 			checkValidNewPiece(pieceType);
 			checkValidNewLocation(toImpl);
 		} else {
+			HantoCoordinateImpl fromImpl = new HantoCoordinateImpl(from);
+			
+			checkValidMove(fromImpl, toImpl);
 			removePiece(pieceType, fromImpl);
 		}
 		
 		placePiece(pieceType, toImpl);
+		
+		checkContiguousBoard(toImpl);
 		
 		if (currentPlayer == startingPlayer) {
 			// Next turn
@@ -89,6 +94,44 @@ public class GammaHantoGame implements HantoGame {
 		}
 		
 		return checkEndgameConditions();
+	}
+
+	/**
+	 * Check if the board is contiguous
+	 * @param startLoc Starting location for checking the board
+	 * @throws HantoException if the board is not contiguous
+	 */
+	private void checkContiguousBoard(HantoCoordinateImpl startLoc) throws HantoException {
+		// Traverse board starting at toImpl to guarantee contiguousness
+		Map<HantoCoordinateImpl, Boolean> piecesReached = new HashMap<HantoCoordinateImpl, Boolean>();
+		
+		for (HantoCoordinateImpl pieceLoc : board.keySet()) {
+			piecesReached.put(pieceLoc, false);
+		}
+		
+		piecesReached.put(startLoc, true);
+		traverseAllAdjacentHexes(startLoc, piecesReached);
+		
+		if (piecesReached.containsValue(false)) {
+			throw new HantoException("Move causes board to become discontiguous.");
+		}
+	}
+	
+	/**
+	 * Recursively perform a breadth-first search on the board
+	 * @param startLoc Location to start the traversal at
+	 * @param piecesReached Map of pieces telling which ones have previously been seen
+	 */
+	private void traverseAllAdjacentHexes(HantoCoordinateImpl startLoc, Map<HantoCoordinateImpl, Boolean> piecesReached) {
+		for (HantoCoordinateImpl adj : startLoc.getAdjacentCoordinates()) {
+			if (!board.containsKey(adj) || piecesReached.get(adj)) {
+				// Piece isn't on board on piece has already been traversed
+				continue;
+			}
+			
+			piecesReached.put(adj, true);
+			traverseAllAdjacentHexes(adj, piecesReached);
+		}
 	}
 
 	/**
@@ -118,6 +161,11 @@ public class GammaHantoGame implements HantoGame {
 				// Butterfly must be placed by turn 4
 				throw new HantoException("Blue player must play his butterfly.");
 			}
+			
+			if (pieceType == SPARROW && blueSparrowsUsed == sparrowsAllowed) {
+				// Out of sparrows
+				throw new HantoException("Blue player is out of sparrows.");
+			}
 		} else {
 			if (pieceType == BUTTERFLY && redButterflyLoc != null) {
 				// Must be first one
@@ -128,6 +176,11 @@ public class GammaHantoGame implements HantoGame {
 				// Butterfly must be placed by turn 4
 				throw new HantoException("Red player must play his butterfly.");
 			}
+			
+			if (pieceType == SPARROW && redSparrowsUsed == sparrowsAllowed) {
+				// Out of sparrows
+				throw new HantoException("Red player is out of sparrows.");
+			}
 		}
 	}
 	
@@ -135,12 +188,7 @@ public class GammaHantoGame implements HantoGame {
 	 * Helper function to check if new coordinate is valid under rules of BetaHanto
 	 * @param place HantoCoordinate to check to guarantee the coordinate is valid
 	 */
-	private void checkValidLocation(HantoCoordinateImpl from, HantoCoordinateImpl to) throws HantoException {
-		if (currentPlayer == startingPlayer && turnNumber == 1 &&
-				(to.getX() != 0 || to.getY() != 0)) {
-			throw new HantoException("First player did not make first move to origin.");
-		}
-		
+	private void checkValidLocation(HantoCoordinateImpl to) throws HantoException {		
 		if (board.containsKey(to)) {
 			throw new HantoException("Piece cannot be placed on existing piece.");
 		}
@@ -152,7 +200,13 @@ public class GammaHantoGame implements HantoGame {
 	 * @throws HantoException if new coordinate is invalid
 	 */
 	private void checkValidNewLocation(HantoCoordinateImpl to) throws HantoException {
-		if (turnNumber > 1)	{
+		if (turnNumber == 1) {
+			if (currentPlayer == startingPlayer && (to.getX() != 0 || to.getY() != 0)) {
+				throw new HantoException("First player did not make first move to origin.");
+			} else if (currentPlayer != startingPlayer && !to.isAdjacentTo(new HantoCoordinateImpl(0, 0))) {
+				throw new HantoException("Second player did not make first move next to origin.");
+			}
+		} else {
 			boolean adjacentToSameColor = false;
 			
 			for (HantoCoordinateImpl adj : to.getAdjacentCoordinates()) {
@@ -185,18 +239,65 @@ public class GammaHantoGame implements HantoGame {
 		if (currentPlayer == BLUE) {
 			if (pieceType == BUTTERFLY) {
 				blueButterflyLoc = place;
+			} else {
+				blueSparrowsUsed++;
 			}
 			
 			currentPlayer = RED;
 		} else {
 			if (pieceType == BUTTERFLY) {
 				redButterflyLoc = place;
+			} else {
+				redSparrowsUsed++;
 			}
 
 			currentPlayer = BLUE;
 		}
 	}
 
+	/**
+	 * Check if a given move is valid under the rules of Hanto
+	 * @param fromImpl From coordinate
+	 * @param toImpl To coordinate
+	 * @throws HantoException if the move is invalid
+	 */
+	private void checkValidMove(HantoCoordinateImpl fromImpl, HantoCoordinateImpl toImpl) throws HantoException {
+		if (!fromImpl.isAdjacentTo(toImpl)) {
+			throw new HantoException("Piece must move to an adjacent location.");
+		}
+		
+		if (currentPlayer == BLUE && blueButterflyLoc == null) {
+			throw new HantoException("Blue can't move until the blue butterfly is placed.");
+		} else if (currentPlayer == RED && redButterflyLoc == null) {
+			throw new HantoException("Red can't move until the red butterfly is placed.");
+		}
+		
+		checkValidSlideMove(fromImpl, toImpl);
+	}
+
+	/**
+	 * @param fromImpl
+	 * @param toImpl
+	 * @throws HantoException
+	 */
+	private void checkValidSlideMove(HantoCoordinateImpl fromImpl, HantoCoordinateImpl toImpl) throws HantoException {
+		List<HantoCoordinateImpl> toAdjacencies = toImpl.getAdjacentCoordinates();
+		List<HantoCoordinateImpl> fromAdjacencies = fromImpl.getAdjacentCoordinates();
+		boolean spaceAvailable = false;
+		
+		for (HantoCoordinateImpl adj : toAdjacencies) {
+			// Find spaces adjacent to from and to; one of them must be empty
+			if (fromAdjacencies.contains(adj) && !board.containsKey(adj)) {		
+				spaceAvailable = true;
+				break;
+			}
+		}
+		
+		if (!spaceAvailable) {
+			throw new HantoException("Piece can't slide.");
+		}
+	}
+	
 	/**
 	 * Remove piece from board, usually in preparation for replacing it after a move
 	 * @param pieceType Piece type being removed
@@ -206,7 +307,7 @@ public class GammaHantoGame implements HantoGame {
 	private void removePiece(HantoPieceType pieceType, HantoCoordinateImpl loc) throws HantoException {
 		HantoPiece currPiece = board.get(loc);
 		
-		if (currPiece.getColor() == currentPlayer && currPiece.getType() == pieceType) {
+		if (currPiece != null && currPiece.getColor() == currentPlayer && currPiece.getType() == pieceType) {
 			// Piece matches qualifications
 			board.remove(loc);
 		} else {
