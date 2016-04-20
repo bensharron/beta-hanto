@@ -21,8 +21,6 @@ public class GammaHantoMasterTest {
 
 	private static HantoGameFactory factory;
 	private HantoGame game;
-	//private HantoPlayerColor firstColor, secondColor;
-	//private MoveResult firstPlayerWins, secondPlayerWins;
 	
 	@BeforeClass
 	public static void initializeClass()
@@ -33,27 +31,8 @@ public class GammaHantoMasterTest {
 	@Before
 	public void setup()
 	{
-		// By default, blue moves first.
-		// setupColors(BLUE);
 		game = factory.makeHantoGame(HantoGameID.GAMMA_HANTO, BLUE);
 	}
-	
-	/*	
-	private void setupColors(HantoPlayerColor startColor)
-	{
-		if (startColor == BLUE) {
-			firstColor = BLUE;
-			secondColor = RED;
-			firstPlayerWins = BLUE_WINS;
-			secondPlayerWins = RED_WINS;
-		} else if (startColor == RED) {
-			firstColor = RED;
-			secondColor = BLUE;
-			firstPlayerWins = RED_WINS;
-			secondPlayerWins = BLUE_WINS;
-		}		
-	}
-	*/
 
 	@Test(expected = HantoException.class)   // 1
 	public void bluePlacesInitialButterflyOffOrigin() throws HantoException

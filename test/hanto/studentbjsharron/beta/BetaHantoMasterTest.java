@@ -170,7 +170,10 @@ public class BetaHantoMasterTest
 	@Test(expected = HantoException.class)	// 10
 	public void blueTriesToMovePiece() throws HantoException
 	{
-		game.makeMove(BUTTERFLY, makeCoordinate(1, 0), makeCoordinate(0, 0));
+		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
+		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 1));
+		
+		game.makeMove(BUTTERFLY, makeCoordinate(0, 0), makeCoordinate(1, 0));
 	}
 	
 	@Test  // 11
