@@ -1,12 +1,11 @@
 /**
  * 
  */
-package hanto.studentbjsharron.delta;
+package hanto.studentbjsharron.common.movement;
 
 import hanto.common.HantoException;
 import hanto.studentbjsharron.common.HantoBoard;
 import hanto.studentbjsharron.common.HantoCoordinateImpl;
-import hanto.studentbjsharron.common.movement.HantoMovementRule;
 
 /**
  * @author ben

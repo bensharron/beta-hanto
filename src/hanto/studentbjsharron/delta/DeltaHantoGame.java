@@ -7,6 +7,7 @@ import static hanto.common.HantoPieceType.*;
 
 import hanto.common.HantoPlayerColor;
 import hanto.studentbjsharron.common.BaseHantoGame;
+import hanto.studentbjsharron.common.movement.HantoFlyingRule;
 import hanto.studentbjsharron.common.movement.HantoWalkingRule;
 
 /**
