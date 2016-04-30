@@ -11,7 +11,6 @@
 package hanto.studentbjsharron;
 
 import hanto.common.*;
-import hanto.studentbjsharron.alpha.AlphaHantoGame;
 import hanto.studentbjsharron.beta.BetaHantoGame;
 import hanto.studentbjsharron.gamma.GammaHantoGame;
 import hanto.studentbjsharron.delta.DeltaHantoGame;
@@ -64,9 +63,6 @@ public class HantoGameFactory
 	public  HantoGame makeHantoGame(HantoGameID gameId, HantoPlayerColor movesFirst) {
 		HantoGame game = null;
 		switch (gameId) {
-			case ALPHA_HANTO:
-				game = new AlphaHantoGame();
-				break;
 			case BETA_HANTO:
 				game = new BetaHantoGame(movesFirst);
 				break;
@@ -78,6 +74,8 @@ public class HantoGameFactory
 				break;
 			case EPSILON_HANTO:
 				game = new EpsilonHantoGame(movesFirst);
+				break;
+			default:
 				break;
 		}
 		return game;

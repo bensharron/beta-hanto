@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import hanto.common.HantoException;
+import hanto.common.HantoPieceType;
 import hanto.common.HantoPlayerColor;
 import hanto.studentbjsharron.common.HantoBoard;
 import hanto.studentbjsharron.common.HantoCoordinateImpl;
@@ -17,7 +18,7 @@ import hanto.studentbjsharron.common.HantoMove;
  * @author Ben Sharron
  *
  */
-public class HantoWalkingRule implements HantoMovementRule {
+public class HantoWalkingRule extends HantoMovementStrategy {
 
 	private int maxSteps;
 	
@@ -41,9 +42,13 @@ public class HantoWalkingRule implements HantoMovementRule {
 	 */
 	@Override
 	public void checkValidMove(HantoCoordinateImpl from, HantoCoordinateImpl to, HantoBoard board) throws HantoException {
-		if (!checkValidPath(from, to, board, maxSteps)) {
+		if (!isValidMove(from, to, board)) {
 			throw new HantoException("No valid walk to that location.");
 		}
+	}
+	
+	public boolean isValidMove(HantoCoordinateImpl from, HantoCoordinateImpl to, HantoBoard board) {
+		return checkValidPath(from, to, board, maxSteps);
 	}
 	
 	/**
@@ -127,6 +132,13 @@ public class HantoWalkingRule implements HantoMovementRule {
 	@Override
 	public List<HantoMove> getValidMoves(HantoCoordinateImpl from, HantoPlayerColor color, HantoBoard board) {
 		List<HantoMove> validMoves = new LinkedList<HantoMove>();
+		HantoPieceType piece = board.getPiece(from).getType();
+		
+		for (HantoCoordinateImpl adj : from.getAdjacentCoordinates()) {
+			if (!board.hasPieceAt(adj) && checkValidPath(from, adj, board, maxSteps)) {
+				validMoves.add(new HantoMove(piece, from, adj));
+			}
+		}
 		
 		return validMoves;
 	}

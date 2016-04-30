@@ -118,10 +118,6 @@ public abstract class BaseHantoGame implements HantoGame {
 		if (!canMove) {
 			throw new HantoException("This version of Hanto doesn't support movement");
 		}
-		
-		if (players.getPlayerState(currentPlayer).getButterflyLoc() == null) {
-			throw new HantoException("Player can't move until the blue butterfly is placed.");
-		}
 	}
 
 	/**
@@ -129,6 +125,10 @@ public abstract class BaseHantoGame implements HantoGame {
 	 * @throws HantoException if move is invalid
 	 */
 	private void checkValidMove() throws HantoException {
+		if (players.getPlayerState(currentPlayer).getButterflyLoc() == null) {
+			throw new HantoException("Player can't move until the blue butterfly is placed.");
+		}
+		
 		if (!rules.hasRuleFor(movingPieceType)) {
 			throw new HantoException("This game has no rule for moving a " + movingPieceType + ".");
 		}
@@ -321,18 +321,44 @@ public abstract class BaseHantoGame implements HantoGame {
 		placePiece();
 	}
 	
-	public List<HantoMove> getPlayerMoves(HantoPlayerColor color) {
+	private List<HantoMove> getPlayerMoves(HantoPlayerColor color) {
 		List<HantoMove> moves = new LinkedList<HantoMove>();
+		
+		if (players.getPlayerState(currentPlayer).getButterflyLoc() == null) {
+			return moves;
+		}
 		
 		for (HantoCoordinateImpl loc : board.getPlayerPieceLocs(color)) {
 			HantoPieceType pieceType = board.getPiece(loc).getType();
 			
-			moves.addAll(rules.getRule(pieceType).getValidMoves(loc, color, board));
+			List<HantoMove> newMoves = rules.getRule(pieceType).getValidMoves(loc, color, board);
+			
+			for (HantoMove newMove : newMoves) {
+				if (boardStaysContiguous(newMove)) {
+					moves.add(newMove);
+				}
+			}
 		}
 		
 		return moves;
 	}
 	
+	private boolean boardStaysContiguous(HantoMove newMove) {
+		HantoBoard tempBoard = board.copyBoard();
+		
+		HantoPieceType piece = newMove.getPiece();
+		
+		tempBoard.addPiece(new HantoPieceImpl(currentPlayer, piece), newMove.getTo());
+		tempBoard.removePiece(newMove.getFrom());
+		
+		return tempBoard.checkContiguousBoard();
+	}
+
+	/**
+	 * Get a list of all plays available to the player of the given color
+	 * @param color Player whose available plays are being retrieved
+	 * @return a list of all plays available to the player of the given color
+	 */
 	public List<HantoMove> getPlayerPlays(HantoPlayerColor color) {
 		List<HantoMove> moves = getPlayerMoves(color);
 		

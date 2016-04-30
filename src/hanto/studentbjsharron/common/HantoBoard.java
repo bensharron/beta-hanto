@@ -244,4 +244,18 @@ public class HantoBoard implements Iterable<HantoCoordinateImpl> {
 		
 		return validPlaceLocs;
 	}
+
+	public List<HantoCoordinateImpl> getEmptyAdjLocs() {
+		List<HantoCoordinateImpl> emptyAdjLocs = new LinkedList<HantoCoordinateImpl>();
+		
+		for (HantoCoordinateImpl piece : board.keySet()) {
+			for (HantoCoordinateImpl adj : piece.getAdjacentCoordinates()) {
+				if (!board.containsKey(adj) && !emptyAdjLocs.contains(adj)) {
+					emptyAdjLocs.add(adj);
+				}
+			}
+		}
+		
+		return emptyAdjLocs;
+	}
 }

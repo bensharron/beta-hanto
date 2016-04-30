@@ -3,30 +3,37 @@
  */
 package hanto.studentbjsharron.common.movement;
 
-import java.util.*;
-
 import hanto.common.HantoException;
-import hanto.common.HantoPlayerColor;
 import hanto.studentbjsharron.common.HantoBoard;
 import hanto.studentbjsharron.common.HantoCoordinateImpl;
-import hanto.studentbjsharron.common.HantoMove;
 
 /**
  * @author Ben Sharron
  *
  */
-public class HantoFlyingRule implements HantoMovementRule {
+public class HantoFlyingRule extends HantoMovementStrategy {
+
+	private final int maxDistance;
+
+	public HantoFlyingRule() {
+		maxDistance = Integer.MAX_VALUE;
+	}
+	
+	public HantoFlyingRule(int maxDist) {
+		maxDistance = maxDist;
+	}
 
 	/*
 	 * @see hanto.studentbjsharron.common.movement.HantoMovementRule#checkValidMove(hanto.studentbjsharron.common.HantoCoordinateImpl, hanto.studentbjsharron.common.HantoCoordinateImpl, hanto.studentbjsharron.common.HantoBoard)
 	 */
 	@Override
-	public void checkValidMove(HantoCoordinateImpl from, HantoCoordinateImpl to, HantoBoard board) throws HantoException {}
-
-	@Override
-	public List<HantoMove> getValidMoves(HantoCoordinateImpl from, HantoPlayerColor color, HantoBoard board) {
-		List<HantoMove> validMoves = new LinkedList<HantoMove>();
-		
-		return validMoves;
+	public void checkValidMove(HantoCoordinateImpl from, HantoCoordinateImpl to, HantoBoard board) throws HantoException {
+		if (!isValidMove(from, to, board)) {
+			throw new HantoException("Piece can only fly " + maxDistance + " spaces.");
+		}
+	}
+	
+	public boolean isValidMove(HantoCoordinateImpl from, HantoCoordinateImpl to, HantoBoard board) {
+		return from.distanceTo(to) <= maxDistance;
 	}
 }

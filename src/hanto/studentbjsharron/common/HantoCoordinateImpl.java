@@ -142,4 +142,8 @@ public class HantoCoordinateImpl implements HantoCoordinate
 		}
 		return true;
 	}
+
+	public int distanceTo(HantoCoordinateImpl to) {
+		return Math.abs(x - to.x) + Math.abs(y - to.y);
+	}
 }
