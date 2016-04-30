@@ -229,10 +229,14 @@ public abstract class BaseHantoGame implements HantoGame {
 			throw new HantoException("Piece must be valid in this game version.");
 		}
 		
-		if (turnNumber >= 4 && movingPieceType != BUTTERFLY && players.getPlayerState(currentPlayer).getButterflyLoc() == null) {
+		if (isNotValidPiece(movingPieceType)) {
 			// Butterfly must be placed by turn 4
 			throw new HantoException("Player must play his butterfly.");
 		}
+	}
+	
+	private boolean isNotValidPiece(HantoPieceType piece) {
+		return turnNumber >= 4 && piece != BUTTERFLY && players.getPlayerState(currentPlayer).getButterflyLoc() == null;
 	}
 
 	/**
@@ -363,7 +367,13 @@ public abstract class BaseHantoGame implements HantoGame {
 		List<HantoMove> moves = getPlayerMoves(color);
 		
 		for (HantoCoordinateImpl place : board.getPlayerValidPlaceLocations(currentPlayer)) {
-			for (HantoPieceType piece : players.getPlayerState(color).getPiecesLeft()) {
+			List<HantoPieceType> piecesLeft = players.getPlayerState(color).getPiecesLeft();
+			
+			for (HantoPieceType piece : piecesLeft) {
+				if (isNotValidPiece(piece)) {
+					continue;
+				}
+				
 				moves.add(new HantoMove(piece, null, place));
 			}
 		}

@@ -40,6 +40,13 @@ public class EpsilonHantoMasterTest {
 	}
 	
 	@Test(expected=HantoPrematureResignationException.class)   // 2
+	public void redCannotResignOnSecondMove() throws HantoException
+	{
+		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
+		game.makeMove(null, null, null);
+	}
+	
+	@Test(expected=HantoPrematureResignationException.class)   // 3
 	public void redCantResignWhenTheyHaveAMove() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -64,7 +71,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(null, null, null);
 	}
 	
-	@Test   // 3
+	@Test   // 4
 	public void redCanResignWhenTheyHaveNoMoves() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -94,14 +101,14 @@ public class EpsilonHantoMasterTest {
 		assertEquals(BLUE_WINS, mr);
 	}
 	
-	@Test   // 4
+	@Test   // 5
 	public void blueCanPlaceHorse() throws HantoException
 	{
 		MoveResult mr = game.makeMove(HORSE, null, makeCoordinate(0, 0));
 		assertEquals(OK, mr);
 	}
 	
-	@Test   // 5
+	@Test   // 6
 	public void horseCanJumpX() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -114,7 +121,7 @@ public class EpsilonHantoMasterTest {
 		assertEquals(OK, mr);
 	}
 	
-	@Test   // 6
+	@Test   // 7
 	public void horseCanJumpY() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -127,7 +134,7 @@ public class EpsilonHantoMasterTest {
 		assertEquals(OK, mr);
 	}
 	
-	@Test   // 7
+	@Test   // 8
 	public void horseCanJumpXY() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -140,7 +147,7 @@ public class EpsilonHantoMasterTest {
 		assertEquals(OK, mr);
 	}
 	
-	@Test(expected=HantoException.class)   // 8
+	@Test(expected=HantoException.class)   // 9
 	public void horseMustJumpInStraightLine() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -152,7 +159,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(HORSE, makeCoordinate(0, -1), makeCoordinate(-1, 1));
 	}
 	
-	@Test(expected=HantoException.class)   // 9
+	@Test(expected=HantoException.class)   // 10
 	public void horseCantJumpToAdjacentHex() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -164,7 +171,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(HORSE, makeCoordinate(0, -1), makeCoordinate(-1, 0));
 	}
 	
-	@Test(expected=HantoException.class)   // 10
+	@Test(expected=HantoException.class)   // 11
 	public void horseCantJumpOverEmptyHex() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -176,7 +183,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(HORSE, makeCoordinate(-1, 0), makeCoordinate(-1, 3));
 	}
 	
-	@Test(expected=HantoException.class)   // 11
+	@Test(expected=HantoException.class)   // 12
 	public void sparrowCantFlyMoreThanFour() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -191,7 +198,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(SPARROW, makeCoordinate(0, -2), makeCoordinate(0, 3));
 	}
 	
-	@Test   // 12
+	@Test   // 13
 	public void sparrowCanFlyFour() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -203,7 +210,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(SPARROW, makeCoordinate(0, -1), makeCoordinate(0, 3));
 	}
 	
-	@Test(expected=HantoException.class)   // 13
+	@Test(expected=HantoException.class)   // 14
 	public void blueCantResignWhenTheyCanFly() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));
@@ -248,7 +255,7 @@ public class EpsilonHantoMasterTest {
 		game.makeMove(null, null, null);
 	}
 	
-	@Test(expected=HantoException.class)   // 13
+	@Test(expected=HantoException.class)   // 15
 	public void blueCantResignWhenTheyCanJump() throws HantoException
 	{
 		game.makeMove(BUTTERFLY, null, makeCoordinate(0, 0));

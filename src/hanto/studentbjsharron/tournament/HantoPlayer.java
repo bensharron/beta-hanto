@@ -10,7 +10,10 @@
 
 package hanto.studentbjsharron.tournament;
 
+import static hanto.common.HantoPieceType.*;
+
 import hanto.common.*;
+import hanto.studentbjsharron.common.HantoCoordinateImpl;
 import hanto.tournament.*;
 
 /**
@@ -19,7 +22,7 @@ import hanto.tournament.*;
  */
 public class HantoPlayer implements HantoGamePlayer
 {
-
+	
 	/*
 	 * @see hanto.tournament.HantoGamePlayer#startGame(hanto.common.HantoGameID, hanto.common.HantoPlayerColor, boolean)
 	 */
@@ -27,7 +30,7 @@ public class HantoPlayer implements HantoGamePlayer
 	public void startGame(HantoGameID version, HantoPlayerColor myColor,
 			boolean doIMoveFirst)
 	{
-		System.out.println("startGame");
+		
 	}
 
 	/*
@@ -36,7 +39,11 @@ public class HantoPlayer implements HantoGamePlayer
 	@Override
 	public HantoMoveRecord makeMove(HantoMoveRecord opponentsMove)
 	{
-		return new HantoMoveRecord(null, null, null);
+		if (opponentsMove == null) {	
+			return new HantoMoveRecord(BUTTERFLY, null, new HantoCoordinateImpl(0, 0));
+		} else {
+			return new HantoMoveRecord(BUTTERFLY, null, new HantoCoordinateImpl(1, 0));
+		}
 	}
 
 }

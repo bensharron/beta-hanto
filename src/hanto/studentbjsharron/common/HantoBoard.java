@@ -221,6 +221,17 @@ public class HantoBoard implements Iterable<HantoCoordinateImpl> {
 			return validPlaceLocs;
 		}
 		
+		if (board.keySet().size() == 1) {
+			// Second move so playing adjacent to origin piece allowed
+			HantoCoordinateImpl origin = new HantoCoordinateImpl(0, 0);
+			
+			for (HantoCoordinateImpl adj : origin.getAdjacentCoordinates()) {
+				validPlaceLocs.add(adj);
+			}
+			
+			return validPlaceLocs;
+		}
+		
 		for (HantoCoordinateImpl piece : getPlayerPieceLocs(color)) {
 			for (HantoCoordinateImpl loc : piece.getAdjacentCoordinates()) {
 				if (board.containsKey(loc) || validPlaceLocs.contains(loc)) {
