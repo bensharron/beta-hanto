@@ -7,6 +7,9 @@ import static hanto.common.HantoPieceType.*;
 import static hanto.common.HantoPlayerColor.*;
 import static hanto.common.MoveResult.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import hanto.common.*;
 
 /**
@@ -59,7 +62,7 @@ public abstract class BaseHantoGame implements HantoGame {
 		fromLoc = from == null ? null : new HantoCoordinateImpl(from);
 		toLoc = to == null ? null : new HantoCoordinateImpl(to);
 		
-		if (canResign && checkResign()) {
+		if (checkResign()) {
 			gameOver = true;
 			return currentPlayer == BLUE ? RED_WINS : BLUE_WINS;
 		}
@@ -91,8 +94,8 @@ public abstract class BaseHantoGame implements HantoGame {
 		return checkEndgameConditions();
 	}
 
-	private boolean checkResign() {
-		return movingPieceType == null && fromLoc == null && toLoc == null;
+	protected boolean checkResign() throws HantoPrematureResignationException {
+		return canResign && movingPieceType == null && fromLoc == null && toLoc == null;
 	}
 
 	private void addNewPiece() {
@@ -316,5 +319,29 @@ public abstract class BaseHantoGame implements HantoGame {
 		}
 		
 		placePiece();
+	}
+	
+	public List<HantoMove> getPlayerMoves(HantoPlayerColor color) {
+		List<HantoMove> moves = new LinkedList<HantoMove>();
+		
+		for (HantoCoordinateImpl loc : board.getPlayerPieceLocs(color)) {
+			HantoPieceType pieceType = board.getPiece(loc).getType();
+			
+			moves.addAll(rules.getRule(pieceType).getValidMoves(loc, color, board));
+		}
+		
+		return moves;
+	}
+	
+	public List<HantoMove> getPlayerPlays(HantoPlayerColor color) {
+		List<HantoMove> moves = getPlayerMoves(color);
+		
+		for (HantoCoordinateImpl place : board.getPlayerValidPlaceLocations(currentPlayer)) {
+			for (HantoPieceType piece : players.getPlayerState(color).getPiecesLeft()) {
+				moves.add(new HantoMove(piece, null, place));
+			}
+		}
+		
+		return moves;
 	}
 }

@@ -3,11 +3,14 @@
  */
 package hanto.studentbjsharron.common.movement;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import hanto.common.HantoException;
+import hanto.common.HantoPlayerColor;
 import hanto.studentbjsharron.common.HantoBoard;
 import hanto.studentbjsharron.common.HantoCoordinateImpl;
+import hanto.studentbjsharron.common.HantoMove;
 
 /**
  * 
@@ -119,5 +122,12 @@ public class HantoWalkingRule implements HantoMovementRule {
 		}
 		
 		return true;
+	}
+
+	@Override
+	public List<HantoMove> getValidMoves(HantoCoordinateImpl from, HantoPlayerColor color, HantoBoard board) {
+		List<HantoMove> validMoves = new LinkedList<HantoMove>();
+		
+		return validMoves;
 	}
 }

@@ -33,6 +33,6 @@ public class DeltaHantoGame extends BaseHantoGame {
 		
 		canMove = true;
 		canResign = true;
-		numTurns = 20;
+		numTurns = Integer.MAX_VALUE;
 	}
 }

@@ -3,9 +3,7 @@
  */
 package hanto.studentbjsharron.common;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import hanto.common.*;
 
@@ -48,7 +46,7 @@ public class HantoBoard implements Iterable<HantoCoordinateImpl> {
 	 * @param location Location to retrieve a piece from
 	 * @return The piece at the location
 	 */
-	public HantoPiece getPiece (HantoCoordinateImpl location) {
+	public HantoPiece getPiece(HantoCoordinateImpl location) {
 		return board.get(location);
 	}
 	
@@ -111,7 +109,7 @@ public class HantoBoard implements Iterable<HantoCoordinateImpl> {
 	private void traverseAllAdjacentHexes(HantoCoordinateImpl startLoc, Map<HantoCoordinateImpl, Boolean> piecesReached) {
 		for (HantoCoordinateImpl adj : startLoc.getAdjacentCoordinates()) {
 			if (!this.hasPieceAt(adj) || piecesReached.get(adj)) {
-				// Piece isn't on board on piece has already been traversed
+				// Piece isn't on board or piece has already been traversed
 				continue;
 			}
 			
@@ -189,5 +187,61 @@ public class HantoBoard implements Iterable<HantoCoordinateImpl> {
 	
 	public String toString() {
 		return this.getPrintableBoard();
+	}
+
+	/**
+	 * Returns a list of locations with pieces of the given player color
+	 * @param player
+	 * @return a list of coordinates of pieces on the board of the the given color
+	 */
+	public List<HantoCoordinateImpl> getPlayerPieceLocs(HantoPlayerColor color) {
+		List<HantoCoordinateImpl> playerPieceLocs = new LinkedList<HantoCoordinateImpl>();
+		
+		for (HantoCoordinateImpl loc : board.keySet()) {
+			if (board.get(loc).getColor().equals(color)) {
+				playerPieceLocs.add(loc);
+			}
+		}
+		
+		return playerPieceLocs;
+	}
+	
+	/**
+	 * Return a list of locations on the board where the given player could place a new piece
+	 * @param color Color of player being checked
+	 * @return a list of locations on the board where the given player could place a new piece
+	 */
+	public List<HantoCoordinateImpl> getPlayerValidPlaceLocations(HantoPlayerColor color) {
+		List<HantoCoordinateImpl> validPlaceLocs = new LinkedList<HantoCoordinateImpl>();
+		
+		if (board.isEmpty()) {
+			// Empty board so can place at origin
+			validPlaceLocs.add(new HantoCoordinateImpl(0, 0));
+			
+			return validPlaceLocs;
+		}
+		
+		for (HantoCoordinateImpl piece : getPlayerPieceLocs(color)) {
+			for (HantoCoordinateImpl loc : piece.getAdjacentCoordinates()) {
+				if (board.containsKey(loc) || validPlaceLocs.contains(loc)) {
+					continue;
+				}
+				
+				boolean noAdjOpps = true;
+				
+				for (HantoCoordinateImpl adj : loc.getAdjacentCoordinates()) {
+					if (board.containsKey(adj) && board.get(adj).getColor() != color) {
+						noAdjOpps = false;
+						break;
+					}
+				}
+				
+				if (noAdjOpps) {
+					validPlaceLocs.add(loc);
+				}
+			}
+		}
+		
+		return validPlaceLocs;
 	}
 }

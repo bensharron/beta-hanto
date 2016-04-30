@@ -66,6 +66,22 @@ public class HantoPlayerState {
 	}
 	
 	/**
+	 * Return list of pieces that the player hasn't exhausted yet
+	 * @return list of pieces that the player hasn't exhausted yet
+	 */
+	public List<HantoPieceType> getPiecesLeft() {
+		List<HantoPieceType> pieces = new LinkedList<HantoPieceType>();
+		
+		for (HantoPieceType piece : piecesLeft.keySet()) {
+			if (piecesLeft.get(piece) > 0) {
+				pieces.add(piece);
+			}
+		}
+		
+		return pieces;
+	}
+	
+	/**
 	 * Get the location of the butterfly for this player
 	 * @return the location of the butterfly
 	 */
