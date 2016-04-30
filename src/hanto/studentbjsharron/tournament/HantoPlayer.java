@@ -64,10 +64,18 @@ public class HantoPlayer implements HantoGamePlayer
 		List<HantoMove> possMoves = game.getPlayerPlays(myColor);
 		
 		HantoMove move = getMove(possMoves);
+		HantoPieceType piece;
+		HantoCoordinateImpl from, to;
 		
-		HantoPieceType piece = move.getPiece();
-		HantoCoordinateImpl from = move.getFrom();
-		HantoCoordinateImpl to = move.getTo();
+		if (move == null) {
+			piece = null;
+			from = null;
+			to = null;
+		} else {
+			piece = move.getPiece();
+			from = move.getFrom();
+			to = move.getTo();
+		}
 		
 		try {
 			game.makeMove(piece, from, to);
@@ -79,6 +87,10 @@ public class HantoPlayer implements HantoGamePlayer
 	}
 
 	private HantoMove getMove(List<HantoMove> possMoves) {
+		if (possMoves.size() == 0) {
+			return null;
+		}
+		
 		Random rn = new Random();
 		int index = rn.nextInt(possMoves.size());
 		
