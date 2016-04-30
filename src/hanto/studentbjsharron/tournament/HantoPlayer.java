@@ -10,10 +10,16 @@
 
 package hanto.studentbjsharron.tournament;
 
-import static hanto.common.HantoPieceType.*;
+import static hanto.common.HantoPlayerColor.*;
+
+import java.util.List;
+import java.util.Random;
 
 import hanto.common.*;
+import hanto.studentbjsharron.HantoGameFactory;
+import hanto.studentbjsharron.common.BaseHantoGame;
 import hanto.studentbjsharron.common.HantoCoordinateImpl;
+import hanto.studentbjsharron.common.HantoMove;
 import hanto.tournament.*;
 
 /**
@@ -22,6 +28,8 @@ import hanto.tournament.*;
  */
 public class HantoPlayer implements HantoGamePlayer
 {
+	HantoPlayerColor myColor, oppColor, movesFirst;
+	BaseHantoGame game;
 	
 	/*
 	 * @see hanto.tournament.HantoGamePlayer#startGame(hanto.common.HantoGameID, hanto.common.HantoPlayerColor, boolean)
@@ -30,7 +38,13 @@ public class HantoPlayer implements HantoGamePlayer
 	public void startGame(HantoGameID version, HantoPlayerColor myColor,
 			boolean doIMoveFirst)
 	{
+		HantoGameFactory factory = HantoGameFactory.getInstance();
 		
+		this.myColor = myColor;
+		oppColor = myColor == BLUE ? RED : BLUE;
+		movesFirst = doIMoveFirst ? myColor : oppColor;
+		
+		game = (BaseHantoGame) factory.makeHantoGame(version, movesFirst);
 	}
 
 	/*
@@ -39,11 +53,35 @@ public class HantoPlayer implements HantoGamePlayer
 	@Override
 	public HantoMoveRecord makeMove(HantoMoveRecord opponentsMove)
 	{
-		if (opponentsMove == null) {	
-			return new HantoMoveRecord(BUTTERFLY, null, new HantoCoordinateImpl(0, 0));
-		} else {
-			return new HantoMoveRecord(BUTTERFLY, null, new HantoCoordinateImpl(1, 0));
+		if (opponentsMove != null) {
+			try {
+				game.makeMove(opponentsMove.getPiece(), opponentsMove.getFrom(), opponentsMove.getTo());
+			} catch (HantoException e) {
+				e.printStackTrace();
+			}
 		}
+		
+		List<HantoMove> possMoves = game.getPlayerPlays(myColor);
+		
+		HantoMove move = getMove(possMoves);
+		
+		HantoPieceType piece = move.getPiece();
+		HantoCoordinateImpl from = move.getFrom();
+		HantoCoordinateImpl to = move.getTo();
+		
+		try {
+			game.makeMove(piece, from, to);
+		} catch (HantoException e) {
+			e.printStackTrace();
+		}
+		
+		return new HantoMoveRecord(piece, from, to);
 	}
 
+	private HantoMove getMove(List<HantoMove> possMoves) {
+		Random rn = new Random();
+		int index = rn.nextInt(possMoves.size());
+		
+		return possMoves.get(index);
+	}
 }

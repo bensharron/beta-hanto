@@ -62,9 +62,27 @@ public class HantoPlayerMasterTest {
 	}
 	
 	@Test   // 3
-	public void blueMakesValidMoveOnFirstMove() throws HantoException
+	public void playersAlwaysMakeValidMovesThroughThreeMoves() throws HantoException
 	{
+		// 1
 		HantoMoveRecord move = player1.makeMove(null);
+		game.makeMove(move.getPiece(), move.getFrom(), move.getTo());
+		
+		move = player2.makeMove(move);
+		game.makeMove(move.getPiece(), move.getFrom(), move.getTo());
+		
+		// 2
+		move = player1.makeMove(move);
+		game.makeMove(move.getPiece(), move.getFrom(), move.getTo());
+		
+		move = player2.makeMove(move);
+		game.makeMove(move.getPiece(), move.getFrom(), move.getTo());
+		
+		// 3
+		move = player1.makeMove(move);
+		game.makeMove(move.getPiece(), move.getFrom(), move.getTo());
+		
+		move = player2.makeMove(move);
 		MoveResult mr = game.makeMove(move.getPiece(), move.getFrom(), move.getTo());
 		
 		assertEquals(OK, mr);
